@@ -12,7 +12,10 @@
 using namespace std;
 
 int argumentParser(int argc, char *argv[], string& input_filepath, string& output_filepath, int& num_workers, int& field_num, bool& is_ascending, bool& is_randomized){
-    if(argc < )
+    if(argc < 7 || argc > 14){
+        cout << "Invalid arguments" << endl;
+        return -1;
+    }
 }
 
 int main(int argc, char *argv[]){
