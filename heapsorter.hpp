@@ -14,6 +14,6 @@ class heapsorter{
         int order_field;
         bool is_max_heap;
         heapsorter(int size, int order_field, bool is_max_heap);
-        record** sort(record**);
-        void heapify(record*);
+        void sort(record** );
+        void heapify(record**, int);
 };
