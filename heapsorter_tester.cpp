@@ -23,18 +23,26 @@ void heapsorter::swap(int* record_heap, int a, int b){
 }
 
 void heapsorter::sort(int* record_heap){
-    for(int i = size/2 - 1; i >= 0; i--){
-        heapify(record_heap, size, i);
-    }
-    // for(int i = 0; i < size; i++){
-    //     record_heap[i]->print_record();
+    // for(int i = size/2 - 1; i >= 0; i--){
+    //     heapify(record_heap, size, i);
     // }
-
-
-    for(int i = size - 1; i >= 0; i--){
+    // // for(int i = 0; i < size; i++){
+    // //     record_heap[i]->print_record();
+    // // }
+    // for(int i = size - 1; i > 0; i--){
+    //     swap(record_heap, 0, i);
+    //     heapify(record_heap, i, 0);
+    // }
+    for (int i = size / 2 - 1; i >= 0; i--)
+        heapify(record_heap, size, i);
+ 
+    for (int i = size - 1; i > 0; i--) {
         swap(record_heap, 0, i);
         heapify(record_heap, i, 0);
     }
+
+
+
 }
 
 void heapsorter::heapify(int* record_heap, int n, int record_idx){
@@ -44,12 +52,34 @@ void heapsorter::heapify(int* record_heap, int n, int record_idx){
 
     if(l < n && record_heap[l] > record_heap[largest])
         largest = l;
-    else if(r < n && (record_heap[r] > record_heap[largest]))
+    
+    else if(r < n && record_heap[r] > record_heap[largest])
         largest = r;
     
-    if(largest != record_idx) {
-        swap(record_heap, largest, record_idx);
-        //cout << "Swapped " << largest << " " << record_idx;
+    // if(largest != record_idx) {
+    //     swap(record_heap, record_idx, largest);
+    //     //cout << "Swapped " << largest << " " << record_idx;
+    //     heapify(record_heap, n, largest);
+    // }
+    //  int largest = i; // Initialize largest as root
+    // int l = 2 * i + 1; // left = 2*i + 1
+    // int r = 2 * i + 2; // right = 2*i + 2
+ 
+    // // If left child is larger than root
+    if (l < n && record_heap[l] > record_heap[largest])
+        largest = l;
+ 
+    // If right child is larger than largest so far
+    if (r < n && record_heap[r] > record_heap[largest])
+        largest = r;
+ 
+    // // If largest is not root
+    if (largest != record_idx) {
+        swap(record_heap, record_idx, largest);
+ 
+        // Recursively heapify the affected sub-tree
         heapify(record_heap, n, largest);
     }
+
+
 }
