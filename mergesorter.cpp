@@ -11,7 +11,7 @@ using namespace std;
 
 class record;
 
-mergesorter::mergesorter(int size, int order_field, bool is_asc): size(size), order_field(order_field), is_asc(is_asc) 
+mergesorter::mergesorter(int size, int order_field, bool is_desc): size(size), order_field(order_field), is_desc(is_desc) 
 {}
 
 void mergesorter::sort(record** record_array) {
@@ -41,10 +41,10 @@ void mergesorter::merge(record** record_array, int left, int middle, int right) 
     
     int i = 0;
     int j = 0;
-    int k = 1;
+    int k = left;
 
     while(i < n1 && j < n2){
-        if(L[i]->compare_records(R[j], order_field)){
+        if(R[j]->compare_records(L[i], order_field, is_desc)){
             record_array[k] = L[i];
             i++;
         }
@@ -83,7 +83,7 @@ int main(){
         my_record[cnt] = new record(id, first_name, last_name, num_dependent, income, zipcode);
         cnt++;
     }
-    mergesorter new_ms(cnt, 1, true);
+    mergesorter new_ms(cnt, 5, true);
     new_ms.sort(my_record);
     for(int i = 0; i < cnt; i++){
         my_record[i]->print_record();

@@ -8,21 +8,26 @@ using namespace std;
 record::record(int ID, string first_name, string last_name, int num_dependent, int income, int zipcode): ID(ID), first_name(first_name), last_name(last_name), num_dependent(num_dependent), income(income), zipcode(zipcode)
 {}
 
-bool record::compare_records(record* rec, int field) {
+bool record::compare_records(record* rec, int field, bool reverse = false) {
+    bool ans;
     if(field == 0)
-        return this->ID > rec->ID;
+        ans = this->ID > rec->ID;
     else if(field == 3)
-        return this->num_dependent > rec->num_dependent;
+        ans = this->num_dependent > rec->num_dependent;
     else if(field == 4)
-        return this->income > rec->income;
+        ans = this->income > rec->income;
     else if(field == 5)
-        return this->zipcode > rec->zipcode;
+        ans = this->zipcode > rec->zipcode;
     else
-        return NULL;
+        ans = NULL;
+    if(reverse)
+        return !ans;
+    else
+        return ans;
 }
 
 void record::print_record(){
-    cout << ID << " " << first_name << " " << last_name << " " << num_dependent << " " << income << " " << zipcode << endl;
+    cout << ID << "\t" << first_name << "\t" << last_name << "\t" << num_dependent << "\t" << income << "\t" << zipcode << endl;
 }
 
 void record::write_record(fstream FILE) {

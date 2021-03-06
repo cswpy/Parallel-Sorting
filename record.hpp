@@ -13,7 +13,7 @@ class record{
         int income;
         int zipcode;
         record(int, std::string, std::string, int, int, int);
-        bool compare_records(record*, int);
+        bool compare_records(record*, int, bool);
         void print_record();
         void write_record(std::fstream FILE); 
 };

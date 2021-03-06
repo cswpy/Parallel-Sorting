@@ -15,8 +15,8 @@ class mergesorter{
     public:
         int size;
         int order_field;
-        bool is_asc;
-        mergesorter(int size, int order_field, bool is_asc);
+        bool is_desc;
+        mergesorter(int size, int order_field, bool is_desc);
         void sort(record** record_array);
         void mergeSort(record** record_array, int, int);
         void merge(record** record_array, int, int, int);

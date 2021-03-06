@@ -41,14 +41,13 @@ void heapsorter::heapify(record** record_heap, int n, int record_idx){
     int l = 2 * record_idx + 1;
     int r = 2 * record_idx + 2;
 
-    if(l < n && record_heap[l]->compare_records(record_heap[largest], order_field));
+    if(l < n && record_heap[l]->compare_records(record_heap[largest], order_field, is_max_heap))
         largest = l;
-    if(r < n && record_heap[r]->compare_records(record_heap[largest], order_field))
+    if(r < n && record_heap[r]->compare_records(record_heap[largest], order_field, is_max_heap))
         largest = r;
     
     if(largest != record_idx) {
         swap(record_heap, largest, record_idx);
-        //cout << "Swapped " << largest << " " << record_idx;
         heapify(record_heap, n, largest);
     }
 }
@@ -76,10 +75,9 @@ int main(int argc, char *argv[]){
         my_record[cnt] = new record(id, first_name, last_name, num_dependent, income, zipcode);
         cnt++;
     }
-    heapsorter new_hs(cnt, 0, true);
+    heapsorter new_hs(cnt, 4, true);
     cout << new_hs.order_field << endl;
     
-    // new_hs.sort(my_record);
     new_hs.sort(my_record);
     for(int i = 0; i < 20; i++){
         my_record[i]->print_record();
