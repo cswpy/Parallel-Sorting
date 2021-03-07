@@ -10,6 +10,7 @@
 #include <sys/times.h>
 #include <limits.h>
 #include <cstdio>
+#include <fstream>
 
 using namespace std;
 
@@ -37,10 +38,9 @@ int argumentParser(int argc, char *argv[], int& input_filepath, int& output_file
                 cout << "Does not recognize the argument " << argv[i] << endl;
                 return -1;
             }
-            return 0;
         }
+        return 0;
     }
-    
 
 }
 
@@ -54,10 +54,23 @@ int main(int argc, char *argv[]){
 
     pid_t pid;
 
-    char fifo[6] = "pipe1";
-    if(mkfifo(fifo, 0666) < 0){
-        perror("Mkfifo failed.");
-        exit(1);
+    // char fifo[6] = "pipe1";
+    // if(mkfifo(fifo, 0666) < 0){
+    //     perror("Mkfifo failed.");
+    //     exit(1);
+    // }
+
+    fstream finput;
+    finput.open(argv[input_filepath], ios::in);
+    if(finput.fail()){
+        cout << "[ERROR] Input file does not exist." << endl;
+    }
+    else{
+        int numOfLines;
+        string tmp;
+        while(getline(finput, tmp))
+            numOfLines++;
+        cout << "[INFO] The input file has " << numOfLines << " lines." << endl;
     }
 
     if((pid = fork()) == -1){
@@ -65,21 +78,13 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     else if(pid == 0){
-        execl("./coord.o", "coord.o", argv[input_filepath], argv[num_workers], argv[field_num], argv[is_ascending], to_string(is_randomized).c_str() ,"-h", argv[output_filepath], fifo, NULL);
+        execl("./coord.o", "coord.o", argv[input_filepath], argv[num_workers], argv[field_num], argv[is_ascending], to_string(is_randomized).c_str() ,"-h", argv[output_filepath], getppid(), NULL);
         perror("Exec failed.");
         exit(1);
     }
     else{
-        cout << "Waiting to read the child " << pid << "." << endl;
-        while(1){
-        int fd = open(fifo, O_RDONLY);
-        char strbuffer[20];
-        read(fd, strbuffer, 11);
-        close(fd);
-        cout << strbuffer << endl;
-        }
+        //doing something
         wait(NULL);
-        cout << "Child process ended" << endl;
         return EXIT_SUCCESS;
     }
     //./myhie -i test.csv -k 10 -r -a 4 -o a -s output.csv 
