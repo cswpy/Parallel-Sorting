@@ -10,9 +10,9 @@ class record{
         std::string first_name;
         std::string last_name;
         int num_dependent;
-        int income;
+        float income;
         int zipcode;
-        record(int, std::string, std::string, int, int, int);
+        record(int, std::string, std::string, int, float, int);
         bool compare_records(record*, int, bool);
         void print_record();
         void write_record(std::fstream FILE); 

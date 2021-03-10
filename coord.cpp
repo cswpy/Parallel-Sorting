@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/times.h>
 #include <limits.h>
+#include <time.h>
 #include <iostream>
 #include <fstream>
 #include "record.hpp"
@@ -18,22 +19,27 @@ class record;
 
 int main(int argc, char const *argv[]){
     string input_path, output_path;
-    int num_workers;
+    int num_workers, num_records;
 
-    fstream file;
-    file.open("test.csv", ios::in);
-    file.seekg(0, ios::end);
-    int end = file.tellg();
-    cout << end << endl;
-    cout << sizeof(record) << endl;
-    cout << (end / sizeof(record)) << endl;
+    // Initialize an array to store the number of records to be sorted by each sorter
+    num_workers = atoi(argv[2]);
+    num_records = atoi(argv[8]);
+    int num_for_sorter[num_workers];
 
-    FILE *finput = fopen("test.csv", "r");
-    fseek(finput, 0, SEEK_END);
-	int lSize = ftell(finput);
-	rewind(finput);
-    cout << lSize << endl;
-	int numOfRecords = (int) lSize/sizeof(record);
-    cout << numOfRecords;
+    // If the random flag is received
+    if(strcmp(argv[5], "1")){
+        srand(time(NULL));
+        int num_records_remain = num_records;
+        for(int i = 0; i < num_workers - 1; i++){
+            num_for_sorter[i] = rand() % (num_records_remain - num_workers + i + i) + 1;
+            num_records_remain -= num_for_sorter[i];
+        }
+        num_for_sorter[num_workers - 1] = num_records_remain;
+    }
+    
+    for(int i = 0; i < num_workers - 1; i++)
+        cout << num_for_sorter[i] << " ";
+
+
     return EXIT_SUCCESS;
 }

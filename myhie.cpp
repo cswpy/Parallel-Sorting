@@ -26,7 +26,7 @@ int argumentParser(int argc, char *argv[], int& input_filepath, int& output_file
             else if(strcmp(argv[i], "-k") == 0)
                 num_workers = ++i;
             else if(strcmp(argv[i], "-r") == 0)
-                is_randomized = i;
+                is_randomized = 1;
             else if(strcmp(argv[i], "-a") == 0)
                 field_num = ++i;
             else if(strcmp(argv[i], "-o") == 0) {
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]){
         return EXIT_FAILURE;
 
     pid_t pid;
-
+    int numOfLines;
     // char fifo[6] = "pipe1";
     // if(mkfifo(fifo, 0666) < 0){
     //     perror("Mkfifo failed.");
@@ -64,9 +64,9 @@ int main(int argc, char *argv[]){
     finput.open(argv[input_filepath], ios::in);
     if(finput.fail()){
         cout << "[ERROR] Input file does not exist." << endl;
+        exit(1);
     }
     else{
-        int numOfLines;
         string tmp;
         while(getline(finput, tmp))
             numOfLines++;
@@ -78,7 +78,9 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     else if(pid == 0){
-        execl("./coord.o", "coord.o", argv[input_filepath], argv[num_workers], argv[field_num], argv[is_ascending], to_string(is_randomized).c_str() ,"-h", argv[output_filepath], getppid(), NULL);
+        char const *ppid = to_string(getppid()).c_str();
+        char const *num_lines = to_string(numOfLines).c_str();
+        execl("./coord.o", "coord.o", argv[input_filepath], argv[num_workers], argv[field_num], argv[is_ascending], to_string(is_randomized).c_str(), argv[output_filepath], ppid, numOfLines, (char *)NULL);
         perror("Exec failed.");
         exit(1);
     }
@@ -87,7 +89,7 @@ int main(int argc, char *argv[]){
         wait(NULL);
         return EXIT_SUCCESS;
     }
-    //./myhie -i test.csv -k 10 -r -a 4 -o a -s output.csv 
+    //./myhie.o -i Data/1batch-1000.csv -k 10 -r -a 4 -o a -s output.csv
 
 
 }
