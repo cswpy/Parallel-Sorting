@@ -4,6 +4,8 @@
 #include <sys/times.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <cstdlib>
+#include <cstring>
 #include "record.hpp"
 #include "mergesorter.hpp"
 
@@ -67,27 +69,53 @@ void mergesorter::merge(record** record_array, int left, int middle, int right) 
     }
 }
 
-int main(){
-    fstream test_file;
-    test_file.open("test.csv", ios::in);
-    if(!test_file)
-        cout << "File not found" << endl;
+int main(int argc, char *argv[]){
+    // To call mergesorter: ./mergesorter.o inputFile startingRowNum numRows a|d field_order fdNum NULL
+    // e.g: ./mergesorter.o test.csv 10 10 a 4 1 
 
-    int num_records = 20;
+    fstream inFile;
+    inFile.open(argv[1], ios::in);
+    if(!inFile){
+        cout << "[ERROR] Failed to open the file in mergesorter." << endl;
+        exit(1);
+    }
+    int num_records = atoi(argv[3]);
+
     record* my_record[num_records];
-    int cnt = 0;
-    int id, num_dependent, income, zipcode;
+    int id, num_dependent, zipcode;
+    float income;
 
     string first_name, last_name;
-    while(test_file >> id >> first_name >> last_name >> num_dependent >> income >> zipcode){
+    
+    int lineCnt = 1;
+    int numRows = atoi(argv[3]);
+    int startRow = atoi(argv[2]);
+    string tmp;
+
+    while(lineCnt < startRow){
+        getline(inFile, tmp);
+        lineCnt++;
+    }
+    int cnt = 0;
+    while(cnt < numRows){
+        inFile >> id >> first_name >> last_name >> num_dependent >> income >> zipcode;
         my_record[cnt] = new record(id, first_name, last_name, num_dependent, income, zipcode);
         cnt++;
     }
-    mergesorter new_ms(cnt, 5, true);
+    bool is_desc = false;
+    if(strcmp(argv[4], "d") == 0)
+        is_desc = true;
+    int order_field = atoi(argv[5]);
+    
+    mergesorter new_ms(cnt, order_field, is_desc);
     new_ms.sort(my_record);
+    
+    int fd = atoi(argv[6]);
     for(int i = 0; i < cnt; i++){
         my_record[i]->print_record();
-        //cout << my_record[i]->income << endl;
-        //delete my_record[i];
+        delete my_record[i];
     }
+    
+
+    return 0;
 }

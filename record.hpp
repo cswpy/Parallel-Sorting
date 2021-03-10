@@ -15,6 +15,7 @@ class record{
         record(int, std::string, std::string, int, float, int);
         bool compare_records(record*, int, bool);
         void print_record();
-        void write_record(std::fstream FILE); 
+        friend std::ostream& operator<<(std::ostream &os, const record& R);
+        friend std::istream& operator>>(std::ostream &is, const record& R);
 };
 #endif

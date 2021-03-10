@@ -80,7 +80,7 @@ int main(int argc, char *argv[]){
     else if(pid == 0){
         char const *ppid = to_string(getppid()).c_str();
         char const *num_lines = to_string(numOfLines).c_str();
-        execl("./coord.o", "coord.o", argv[input_filepath], argv[num_workers], argv[field_num], argv[is_ascending], to_string(is_randomized).c_str(), argv[output_filepath], ppid, numOfLines, (char *)NULL);
+        execl("./coord.o", "coord.o", argv[input_filepath], argv[num_workers], argv[field_num], argv[is_ascending], to_string(is_randomized).c_str(), argv[output_filepath], ppid, num_lines, NULL);
         perror("Exec failed.");
         exit(1);
     }
