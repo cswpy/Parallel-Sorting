@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <cstdlib>
 #include <cstring>
+#include <signal.h>
 #include "record.hpp"
 #include "mergesorter.hpp"
 
@@ -70,16 +71,18 @@ void mergesorter::merge(record** record_array, int left, int middle, int right) 
 }
 
 int main(int argc, char *argv[]){
-    // To call mergesorter: ./mergesorter.o inputFile startingRowNum numRows a|d field_order fdNum NULL
-    // e.g: ./mergesorter.o test.csv 10 10 a 4 1 
-
+    // To call mergesorter: ./mergesorter.o inputFile startingRowNum numRows a|d field_order fdNum rootpid NULL
+    // e.g: ./mergesorter.o test.csv 10 10 a 4 fdNum rootpid
+    //cout << "Filepath: " << argv[1] <<" startingRowNum: " << argv[2] << " numRowsToSort: " << argv[3] << " Asc/Desc: " << argv[4] << " order_field: " << argv[5] << " fdNum: " << argv[6] << " rootpid: " << argv[7] << endl;
     fstream inFile;
     inFile.open(argv[1], ios::in);
     if(!inFile){
-        cout << "[ERROR] Failed to open the file in mergesorter." << endl;
+        perror("[ERROR] Failed to open the file in mergesorter.");
         exit(1);
     }
     int num_records = atoi(argv[3]);
+    int fd = atoi(argv[6]);
+    int rootpid = atoi(argv[7]);
 
     record* my_record[num_records];
     int id, num_dependent, zipcode;
@@ -110,12 +113,15 @@ int main(int argc, char *argv[]){
     mergesorter new_ms(cnt, order_field, is_desc);
     new_ms.sort(my_record);
     
-    int fd = atoi(argv[6]);
+    cout << "---------------------" << endl;
     for(int i = 0; i < cnt; i++){
         my_record[i]->print_record();
         delete my_record[i];
     }
-    
+    cout << "---------------------" << endl;
+    // Sorting is finished, send SIGUSR to rootpid
+
+    kill(rootpid, SIGUSR1);
 
     return 0;
 }

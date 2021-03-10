@@ -14,6 +14,14 @@
 
 using namespace std;
 
+int numSorterSignal = 0;
+
+void handleSIGUSR1(int sig){
+    signal(SIGUSR1, handleSIGUSR1);
+    cout << "SIGNAL RECEIVED" << endl;
+    numSorterSignal++;
+}
+
 int argumentParser(int argc, char *argv[], int& input_filepath, int& output_filepath, int& num_workers, int& field_num, int& is_ascending, int& is_randomized){
     if(argc < 7 || argc > 12){
         cout << "Invalid arguments" << endl;
@@ -47,7 +55,8 @@ int argumentParser(int argc, char *argv[], int& input_filepath, int& output_file
 int main(int argc, char *argv[]){
     int input_filepath, output_filepath;
     int num_workers, field_num, is_ascending, is_randomized = 0;
-    
+    signal(SIGUSR1, handleSIGUSR1);
+    cout << "[INFO] The root node has pid: " << getpid() << endl;
 
     if(argumentParser(argc, argv, input_filepath, output_filepath, num_workers, field_num, is_ascending, is_randomized) == -1)
         return EXIT_FAILURE;
@@ -86,10 +95,16 @@ int main(int argc, char *argv[]){
     }
     else{
         //doing something
-        wait(NULL);
+        cout << "Root is waiting" << endl;
+        int status;
+        int wpid;
+        while((wpid = wait(&status)) > 0);
+        cout << "[INFO] Number of SIGUSR1 arrived at root: " << numSorterSignal << endl;
         return EXIT_SUCCESS;
     }
     //./myhie.o -i Data/1batch-1000.csv -k 10 -r -a 4 -o a -s output.csv
+
+    //./myhie.o -i test.csv -k 4 -r -a 4 -o a -s output.csv
 
 
 }
