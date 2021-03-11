@@ -54,16 +54,14 @@ int main(int argc, char *argv[]){
     // for(int i = 0; i < num_workers; i++)
     //     cout << num_for_sorter[i] << " ";
 
-    // Creating named pipes for sorters to communicate with the merger
-    string pipename;
-    int fifo[num_workers + 1];
+    //int fifo[num_workers + 1];
     int startingRowNum = 0;
     for(int i = 0; i < num_workers; i++){
         pipename = "sorter" + to_string(i);
-        if(fifo[i] = mkfifo(pipename.c_str(), 0666) != 0){
-            perror("[ERROR] Failed to mkfifo.");
-            exit(1);
-        }
+        // if(fifo[i] = mkfifo(pipename.c_str(), 0666) != 0){
+        //     perror("[ERROR] Failed to mkfifo.");
+        //     exit(1);
+        // }
         pid_t pid;
         if((pid = fork()) == -1){
             perror("[ERROR] Failed to fork in coord.");
@@ -73,8 +71,8 @@ int main(int argc, char *argv[]){
         else if(pid == 0) {
             char const *startingRowNumChar = to_string(startingRowNum).c_str();
             char const *numRowsToSortChar = to_string(num_for_sorter[i]).c_str();
-            char const *fdChar = to_string(fifo[i]).c_str();
-            execl("./mergesorter.o", "mergesorter.o", argv[1], startingRowNumChar, numRowsToSortChar, argv[4], argv[3], fdChar, argv[7], NULL);
+            char const *sorterIdChar = to_string(i).c_str();
+            execl("./mergesorter.o", "mergesorter.o", argv[1], startingRowNumChar, numRowsToSortChar, argv[4], argv[3], sorterIdChar, argv[7], NULL);
             perror("Failed to exec in coord.");
             exit(1);
         }

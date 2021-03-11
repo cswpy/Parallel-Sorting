@@ -4,8 +4,10 @@
 #include <sys/times.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 #include <signal.h>
 #include "record.hpp"
 #include "mergesorter.hpp"
@@ -71,9 +73,18 @@ void mergesorter::merge(record** record_array, int left, int middle, int right) 
 }
 
 int main(int argc, char *argv[]){
-    // To call mergesorter: ./mergesorter.o inputFile startingRowNum numRows a|d field_order fdNum rootpid NULL
-    // e.g: ./mergesorter.o test.csv 10 10 a 4 fdNum rootpid
+    // To call mergesorter: ./mergesorter.o inputFile startingRowNum numRows a|d field_order sorterId rootpid NULL
+    // e.g: ./mergesorter.o test.csv 10 10 a 4 sorterId rootpid
     //cout << "Filepath: " << argv[1] <<" startingRowNum: " << argv[2] << " numRowsToSort: " << argv[3] << " Asc/Desc: " << argv[4] << " order_field: " << argv[5] << " fdNum: " << argv[6] << " rootpid: " << argv[7] << endl;
+    
+    // Starting the tie counter
+    double t1, t2, cpu_time;
+    struct tms tb1, tb2;
+    double ticspersec;
+    int i, sum = 0;
+    ticspersec = (double) sysconf(_SC_CLK_TCK);
+    t1 = (double) times(&tb1);
+    
     fstream inFile;
     inFile.open(argv[1], ios::in);
     if(!inFile){
@@ -81,7 +92,7 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     int num_records = atoi(argv[3]);
-    int fd = atoi(argv[6]);
+    int sorterId = atoi(argv[6]);
     int rootpid = atoi(argv[7]);
 
     record* my_record[num_records];
@@ -113,13 +124,29 @@ int main(int argc, char *argv[]){
     mergesorter new_ms(cnt, order_field, is_desc);
     new_ms.sort(my_record);
     
-    cout << "---------------------" << endl;
+    //cout << "---------------------" << endl;
     for(int i = 0; i < cnt; i++){
-        my_record[i]->print_record();
+        //my_record[i]->print_record();
         delete my_record[i];
     }
-    cout << "---------------------" << endl;
-    // Sorting is finished, send SIGUSR to rootpid
+    //cout << "---------------------" << endl;
+
+    sleep(1);
+    // Sorting is finished, send the sorted results & time stats to merger send SIGUSR1 to rootpid
+    t2 = (double) times(&tb2);
+    double time_elapsed = (t2 - t1) / ticspersec;
+    cout << "Sorter took " << time_elapsed << " to complete" << endl;
+
+    string pipename = "sorter" + to_string(sorterId);
+    if(mkfifo(pipename.c_str(), 0666) != 0){
+            perror("[ERROR] Failed to mkfifo.");
+            exit(1);
+    }
+
+    fstream outFile;
+    outFile.open(pipename.c_str(), ios::out);
+    outFile.write(pipename.c_str());
+    outFile.close();
 
     kill(rootpid, SIGUSR1);
 

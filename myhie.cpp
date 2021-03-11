@@ -18,7 +18,6 @@ int numSorterSignal = 0;
 
 void handleSIGUSR1(int sig){
     signal(SIGUSR1, handleSIGUSR1);
-    cout << "SIGNAL RECEIVED" << endl;
     numSorterSignal++;
 }
 
@@ -94,11 +93,14 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     else{
-        //doing something
-        cout << "Root is waiting" << endl;
+        // Wait for coord to end
+        //cout << "Root is waiting" << endl;
         int status;
         int wpid;
         while((wpid = wait(&status)) > 0);
+        
+        // Unlink the SIGUSR w/ the signal handling function
+        signal(SIGUSR1, SIG_DFL);
         cout << "[INFO] Number of SIGUSR1 arrived at root: " << numSorterSignal << endl;
         return EXIT_SUCCESS;
     }
