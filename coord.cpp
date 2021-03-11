@@ -56,6 +56,7 @@ int main(int argc, char *argv[]){
 
     //int fifo[num_workers + 1];
     int startingRowNum = 0;
+    string pipename;
     for(int i = 0; i < num_workers; i++){
         pipename = "sorter" + to_string(i);
         // if(fifo[i] = mkfifo(pipename.c_str(), 0666) != 0){
@@ -81,14 +82,29 @@ int main(int argc, char *argv[]){
             startingRowNum += num_for_sorter[i];
         }
     }
-    pid_t wpid;
-    int status;
-    while((wpid = wait(&status)) > 0);
 
-    for(int i=0; i < num_workers; i++){
-        pipename = "sorter" + to_string(i);
-        unlink(pipename.c_str());
+    // Spawning the merger node
+    pid_t mergerpid;
+    if((mergerpid = fork()) == -1){
+        perror("[ERROR] Failed to fork in coord.");
+        exit(1);
     }
+    else if(mergerpid == 0){
+        char const *numWorkersChar = to_string(num_workers).c_str();
+        execl("./merger.o", "merger.o", numWorkersChar, NULL);
+        perror("Failed to exec in coord.");
+        exit(1);
+    }
+    else{
+        pid_t wpid;
+        int status;
+        while((wpid = wait(&status)) > 0);
 
-    return EXIT_SUCCESS;
+        // for(int i=0; i < num_workers; i++){
+        //     pipename = "sorter" + to_string(i);
+        //     unlink(pipename.c_str());
+        // }
+
+        return EXIT_SUCCESS;
+    }
 }

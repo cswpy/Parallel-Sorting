@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <fcntl.h>
 #include <signal.h>
 #include "record.hpp"
 #include "mergesorter.hpp"
@@ -143,12 +144,16 @@ int main(int argc, char *argv[]){
             exit(1);
     }
 
-    fstream outFile;
+    // int fd = open(pipename.c_str(), O_WRONLY);
+    // string array = "Hello from " + to_string(sorterId);
+    // write(fd, array.c_str(), strlen(array.c_str()) + 1);
+    // close(fd);
+    ofstream outFile;
     outFile.open(pipename.c_str(), ios::out);
-    outFile.write(pipename.c_str());
+    outFile << "Hello from sorter " << to_string(sorterId) << endl;
     outFile.close();
 
     kill(rootpid, SIGUSR1);
 
-    return 0;
+    return 0; 
 }
