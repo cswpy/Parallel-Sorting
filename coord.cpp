@@ -49,10 +49,8 @@ int main(int argc, char *argv[]){
         num_for_sorter[num_workers - 1] = num_records_remain;
     }
     
-
-
-    // for(int i = 0; i < num_workers; i++)
-    //     cout << num_for_sorter[i] << " ";
+    for(int i = 0; i < num_workers; i++)
+        cout << "Sorter " << i << ": " << num_for_sorter[i] << endl;
 
     //int fifo[num_workers + 1];
     int startingRowNum = 0;

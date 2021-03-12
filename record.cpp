@@ -1,12 +1,17 @@
 #include <iostream>
 #include <cstring>
 #include <string>
+
 #include "record.hpp"
 
 using namespace std;
 
-record::record(int ID, string first_name, string last_name, int num_dependent, float income, int zipcode): ID(ID), first_name(first_name), last_name(last_name), num_dependent(num_dependent), income(income), zipcode(zipcode)
-{}
+record::record(string original_string): original_string(original_string){
+    this->ID = stoi(original_string.substr(0, 7));
+    this->num_dependent = stoi(original_string.substr(34, 1));
+    this->income = stof(original_string.substr(38, 8));
+    this->zipcode = stoi(original_string.substr(47, string::npos));
+}
 
 bool record::compare_records(record* rec, int field, bool reverse = false) {
     bool ans;
@@ -27,14 +32,14 @@ bool record::compare_records(record* rec, int field, bool reverse = false) {
 }
 
 void record::print_record(){
-    cout << ID << "\t" << first_name << "\t" << last_name << "\t" << num_dependent << "\t" << income << "\t" << zipcode << endl;
+    cout << original_string << endl;
 }
 
 std::ostream& operator<<(std::ostream &os, const record& R){
-    os << R.ID << " " << R.first_name << " " << R.last_name << " " << R.num_dependent << " " << R.income << " " << R.zipcode << endl;
+    os << R.original_string;
     return os;
 }
 std::istream& operator>>(std::istream &is, record& R){
-    is >> R.ID >> R.first_name >> R.last_name >> R.num_dependent >> R.income >> R.zipcode;
+    is >> R.original_string;
     return is;
 }

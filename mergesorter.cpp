@@ -12,6 +12,7 @@
 #include <signal.h>
 #include "record.hpp"
 #include "mergesorter.hpp"
+#define ROW_LENGTH 52
 
 using namespace std;
 
@@ -75,7 +76,7 @@ void mergesorter::merge(record** record_array, int left, int middle, int right) 
 
 int main(int argc, char *argv[]){
     // To call mergesorter: ./mergesorter.o inputFile startingRowNum numRows a|d field_order sorterId rootpid NULL
-    // e.g: ./mergesorter.o test.csv 10 10 a 4 sorterId rootpid
+    // e.g: ./mergesorter.o Data/.csv 10 10 a 4 sorterId rootpid
     //cout << "Filepath: " << argv[1] <<" startingRowNum: " << argv[2] << " numRowsToSort: " << argv[3] << " Asc/Desc: " << argv[4] << " order_field: " << argv[5] << " fdNum: " << argv[6] << " rootpid: " << argv[7] << endl;
     
     // Starting the tie counter
@@ -97,10 +98,6 @@ int main(int argc, char *argv[]){
     int rootpid = atoi(argv[7]);
 
     record* my_record[num_records];
-    int id, num_dependent, zipcode;
-    float income;
-
-    string first_name, last_name;
     
     int lineCnt = 1;
     int numRows = atoi(argv[3]);
@@ -113,8 +110,8 @@ int main(int argc, char *argv[]){
     }
     int cnt = 0;
     while(cnt < numRows){
-        inFile >> id >> first_name >> last_name >> num_dependent >> income >> zipcode;
-        my_record[cnt] = new record(id, first_name, last_name, num_dependent, income, zipcode);
+        getline(inFile, tmp);
+        my_record[cnt] = new record(tmp);
         cnt++;
     }
     bool is_desc = false;
@@ -125,35 +122,26 @@ int main(int argc, char *argv[]){
     mergesorter new_ms(cnt, order_field, is_desc);
     new_ms.sort(my_record);
     
-    //cout << "---------------------" << endl;
-    for(int i = 0; i < cnt; i++){
-        //my_record[i]->print_record();
-        delete my_record[i];
-    }
-    //cout << "---------------------" << endl;
-
-    sleep(1);
     // Sorting is finished, send the sorted results & time stats to merger send SIGUSR1 to rootpid
     t2 = (double) times(&tb2);
     double time_elapsed = (t2 - t1) / ticspersec;
-    cout << "Sorter took " << time_elapsed << " to complete" << endl;
+    cout << "[INFO] Sorter " << sorterId << " took " << time_elapsed << " to complete." << endl;
 
-    string pipename = "sorter" + to_string(sorterId);
-    if(mkfifo(pipename.c_str(), 0666) != 0){
-            perror("[ERROR] Failed to mkfifo.");
-            exit(1);
+    string pipename = "tmp/sorter" + to_string(sorterId);
+
+    int fd = open(pipename.c_str(), O_WRONLY);
+    //const char *numRecordsChar = to_string(num_records).c_str();
+    write(fd, &num_records, sizeof(int));
+    char buf[ROW_LENGTH + 1];
+    for(int i = 0; i < cnt; i++){
+        strcpy(buf, my_record[i]->original_string.c_str());
+        cout << buf << endl;
+        write(fd, buf, ROW_LENGTH);
+        delete my_record[i];
     }
 
-    // int fd = open(pipename.c_str(), O_WRONLY);
-    // string array = "Hello from " + to_string(sorterId);
-    // write(fd, array.c_str(), strlen(array.c_str()) + 1);
-    // close(fd);
-    ofstream outFile;
-    outFile.open(pipename.c_str(), ios::out);
-    outFile << "Hello from sorter " << to_string(sorterId) << endl;
-    outFile.close();
+    close(fd);
 
     kill(rootpid, SIGUSR1);
-
     return 0; 
 }

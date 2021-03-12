@@ -7,12 +7,11 @@
 class record{
     public:
         int ID;
-        std::string first_name;
-        std::string last_name;
+        std::string original_string;
         int num_dependent;
         float income;
         int zipcode;
-        record(int, std::string, std::string, int, float, int);
+        record(std::string);
         bool compare_records(record*, int, bool);
         void print_record();
         friend std::ostream& operator<<(std::ostream &os, const record& R);
