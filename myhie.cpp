@@ -100,7 +100,6 @@ int main(int argc, char *argv[]){
         while((wpid = wait(&status)) > 0);
         
         // Unlink the SIGUSR w/ the signal handling function
-        signal(SIGUSR1, SIG_DFL);
         cout << "[INFO] Number of SIGUSR1 arrived at root: " << numSorterSignal << endl;
         return EXIT_SUCCESS;
     }

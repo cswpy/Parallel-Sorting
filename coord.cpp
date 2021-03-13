@@ -27,7 +27,6 @@ int main(int argc, char *argv[]){
     int num_for_sorter[num_workers];
 
     // cout << num_workers << num_records << endl;
-    cout << "This is child process" << endl;
 
     // Calculate the number of records to sort for each sorter
     int num_records_remain = num_records;
@@ -52,35 +51,6 @@ int main(int argc, char *argv[]){
     for(int i = 0; i < num_workers; i++)
         cout << "Sorter " << i << ": " << num_for_sorter[i] << endl;
 
-    //int fifo[num_workers + 1];
-    int startingRowNum = 0;
-    string pipename;
-    for(int i = 0; i < num_workers; i++){
-        pipename = "sorter" + to_string(i);
-        // if(fifo[i] = mkfifo(pipename.c_str(), 0666) != 0){
-        //     perror("[ERROR] Failed to mkfifo.");
-        //     exit(1);
-        // }
-        pid_t pid;
-        if((pid = fork()) == -1){
-            perror("[ERROR] Failed to fork in coord.");
-            exit(1);
-        }
-        // Calling the appropriate sorter if child
-        else if(pid == 0) {
-            char const *startingRowNumChar = to_string(startingRowNum).c_str();
-            char const *numRowsToSortChar = to_string(num_for_sorter[i]).c_str();
-            char const *sorterIdChar = to_string(i).c_str();
-            execl("./mergesorter.o", "mergesorter.o", argv[1], startingRowNumChar, numRowsToSortChar, argv[4], argv[3], sorterIdChar, argv[7], NULL);
-            perror("Failed to exec in coord.");
-            exit(1);
-        }
-        else{
-            // Parent process
-            startingRowNum += num_for_sorter[i];
-        }
-    }
-
     // Spawning the merger node
     pid_t mergerpid;
     if((mergerpid = fork()) == -1){
@@ -89,20 +59,48 @@ int main(int argc, char *argv[]){
     }
     else if(mergerpid == 0){
         char const *numWorkersChar = to_string(num_workers).c_str();
-        execl("./merger.o", "merger.o", numWorkersChar, NULL);
+        execl("./merger.o", "merger.o", numWorkersChar, argv[4], argv[3], argv[7], NULL);
         perror("Failed to exec in coord.");
         exit(1);
     }
     else{
-        pid_t wpid;
-        int status;
-        while((wpid = wait(&status)) > 0);
 
         // for(int i=0; i < num_workers; i++){
         //     pipename = "sorter" + to_string(i);
         //     unlink(pipename.c_str());
         // }
 
+        //int fifo[num_workers + 1];
+        int startingRowNum = 0;
+        string pipename;
+        for(int i = 0; i < num_workers; i++){
+            pipename = "sorter" + to_string(i);
+            // if(fifo[i] = mkfifo(pipename.c_str(), 0666) != 0){
+            //     perror("[ERROR] Failed to mkfifo.");
+            //     exit(1);
+            // }
+            pid_t pid;
+            if((pid = fork()) == -1){
+                perror("[ERROR] Failed to fork in coord.");
+                exit(1);
+            }
+            // Calling the appropriate sorter if child
+            else if(pid == 0) {
+                char const *startingRowNumChar = to_string(startingRowNum).c_str();
+                char const *numRowsToSortChar = to_string(num_for_sorter[i]).c_str();
+                char const *sorterIdChar = to_string(i).c_str();
+                execl("./mergesorter.o", "mergesorter.o", argv[1], startingRowNumChar, numRowsToSortChar, argv[4], argv[3], sorterIdChar, argv[7], NULL);
+                perror("Failed to exec in coord.");
+                exit(1);
+            }
+            else{
+                // Parent process
+                startingRowNum += num_for_sorter[i];
+            }
+        }
+        pid_t wpid;
+        int status;
+        while((wpid = wait(&status)) > 0);
         return EXIT_SUCCESS;
     }
 }

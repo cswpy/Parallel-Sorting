@@ -10,6 +10,7 @@
 #include <string>
 #include <fcntl.h>
 #include <signal.h>
+#include <errno.h>
 #include "record.hpp"
 #include "mergesorter.hpp"
 #define ROW_LENGTH 52
@@ -129,17 +130,27 @@ int main(int argc, char *argv[]){
 
     string pipename = "tmp/sorter" + to_string(sorterId);
 
-    int fd = open(pipename.c_str(), O_WRONLY);
+    
+    int fd;
+        
+    while((fd = open(pipename.c_str(), O_WRONLY)) == -1){
+        if(errno != ENOENT){
+            perror("[ERROR] Failed to open fifo.");
+            exit(1);
+            break;
+        }
+    }
     //const char *numRecordsChar = to_string(num_records).c_str();
     write(fd, &num_records, sizeof(int));
-    char buf[ROW_LENGTH + 1];
+
+
     for(int i = 0; i < cnt; i++){
+        char buf[ROW_LENGTH];
         strcpy(buf, my_record[i]->original_string.c_str());
-        cout << buf << endl;
         write(fd, buf, ROW_LENGTH);
         delete my_record[i];
     }
-
+    cout << "Closing the pipe " << pipename << endl;
     close(fd);
 
     kill(rootpid, SIGUSR1);

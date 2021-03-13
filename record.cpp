@@ -13,7 +13,7 @@ record::record(string original_string): original_string(original_string){
     this->zipcode = stoi(original_string.substr(47, string::npos));
 }
 
-bool record::compare_records(record* rec, int field, bool reverse = false) {
+bool record::compare_records(record* rec, int field, bool reverse) {
     bool ans;
     if(field == 0)
         ans = this->ID > rec->ID;
@@ -23,6 +23,24 @@ bool record::compare_records(record* rec, int field, bool reverse = false) {
         ans = this->income > rec->income;
     else if(field == 5)
         ans = this->zipcode > rec->zipcode;
+    else
+        ans = NULL;
+    if(reverse)
+        return !ans;
+    else
+        return ans;
+}
+
+bool record::compare_records(record rec, int field, bool reverse) {
+    bool ans;
+    if(field == 0)
+        ans = this->ID > rec.ID;
+    else if(field == 3)
+        ans = this->num_dependent > rec.num_dependent;
+    else if(field == 4)
+        ans = this->income > rec.income;
+    else if(field == 5)
+        ans = this->zipcode > rec.zipcode;
     else
         ans = NULL;
     if(reverse)
