@@ -26,8 +26,6 @@ int main(int argc, char *argv[]){
     num_records = atoi(argv[8]); //The 8th argument specifies the number of lines in the file
     int num_for_sorter[num_workers];
 
-    // cout << num_workers << num_records << endl;
-
     // Calculate the number of records to sort for each sorter
     int num_records_remain = num_records;
     if(strcmp(argv[5], "1") == 0){

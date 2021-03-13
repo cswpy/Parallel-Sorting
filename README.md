@@ -4,6 +4,7 @@
 
 ## Running the Program
 
+Make sure that there is a tmp folder under the current folder so that FIFOs can be properly stored.
 ```bash
 make all
 ./myhie.o -i <input filepath> -k <number of workers> -a <the field to sort on> -o <a|d indicating ascending|descending> -s <output filepath>
@@ -27,3 +28,5 @@ Merger node will open all the pipes in the beginning, poll the file descriptors 
 ### record
 Record is a helper class to store the information of each sorter and has a method to compare two records based on the field to sort on and asc|desc.
 
+## P.S.
+The number of signal the root node(myhie) receives is often less than the number of sorters. This is because it is not reliable and it is not portable across platforms.
