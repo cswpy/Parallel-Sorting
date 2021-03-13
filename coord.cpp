@@ -48,8 +48,8 @@ int main(int argc, char *argv[]){
         num_for_sorter[num_workers - 1] = num_records_remain;
     }
     
-    for(int i = 0; i < num_workers; i++)
-        cout << "Sorter " << i << ": " << num_for_sorter[i] << endl;
+    // for(int i = 0; i < num_workers; i++)
+    //     cout << "Sorter " << i << ": " << num_for_sorter[i] << endl;
 
     // Spawning the merger node
     pid_t mergerpid;
@@ -57,20 +57,15 @@ int main(int argc, char *argv[]){
         perror("[ERROR] Failed to fork in coord.");
         exit(1);
     }
+    // Calling the merger
     else if(mergerpid == 0){
         char const *numWorkersChar = to_string(num_workers).c_str();
-        execl("./merger.o", "merger.o", numWorkersChar, argv[4], argv[3], argv[7], NULL);
+        execl("./merger.o", "merger.o", numWorkersChar, argv[4], argv[3], argv[7], argv[6], NULL);
         perror("Failed to exec in coord.");
         exit(1);
     }
     else{
-
-        // for(int i=0; i < num_workers; i++){
-        //     pipename = "sorter" + to_string(i);
-        //     unlink(pipename.c_str());
-        // }
-
-        //int fifo[num_workers + 1];
+        // Calling the sorters if i is odd, call mergesorter, if i is even call heapsorter
         int startingRowNum = 0;
         string pipename;
         for(int i = 0; i < num_workers; i++){
@@ -84,12 +79,15 @@ int main(int argc, char *argv[]){
                 perror("[ERROR] Failed to fork in coord.");
                 exit(1);
             }
-            // Calling the appropriate sorter if child
+            // Calling the appropriate sorter if it's child
             else if(pid == 0) {
                 char const *startingRowNumChar = to_string(startingRowNum).c_str();
                 char const *numRowsToSortChar = to_string(num_for_sorter[i]).c_str();
                 char const *sorterIdChar = to_string(i).c_str();
-                execl("./mergesorter.o", "mergesorter.o", argv[1], startingRowNumChar, numRowsToSortChar, argv[4], argv[3], sorterIdChar, argv[7], NULL);
+                if(i%2 == 1)
+                    execl("./mergesorter.o", "mergesorter.o", argv[1], startingRowNumChar, numRowsToSortChar, argv[4], argv[3], sorterIdChar, argv[7], NULL);
+                else
+                    execl("./heapsorter.o", "heapsorter.o", argv[1], startingRowNumChar, numRowsToSortChar, argv[4], argv[3], sorterIdChar, argv[7], NULL);
                 perror("Failed to exec in coord.");
                 exit(1);
             }

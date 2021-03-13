@@ -77,7 +77,7 @@ void mergesorter::merge(record** record_array, int left, int middle, int right) 
 
 int main(int argc, char *argv[]){
     // To call mergesorter: ./mergesorter.o inputFile startingRowNum numRows a|d field_order sorterId rootpid NULL
-    // e.g: ./mergesorter.o Data/.csv 10 10 a 4 sorterId rootpid
+    // e.g: ./mergesorter.o Data/1batch-1000.csv 10 10 a 4 sorterId rootpid
     //cout << "Filepath: " << argv[1] <<" startingRowNum: " << argv[2] << " numRowsToSort: " << argv[3] << " Asc/Desc: " << argv[4] << " order_field: " << argv[5] << " fdNum: " << argv[6] << " rootpid: " << argv[7] << endl;
     
     // Starting the tie counter
@@ -91,7 +91,7 @@ int main(int argc, char *argv[]){
     fstream inFile;
     inFile.open(argv[1], ios::in);
     if(!inFile){
-        perror("[ERROR] Failed to open the file in mergesorter.");
+        perror("[ERROR] Failed to open the file in mergesorter");
         exit(1);
     }
     int num_records = atoi(argv[3]);
@@ -125,8 +125,11 @@ int main(int argc, char *argv[]){
     
     // Sorting is finished, send the sorted results & time stats to merger send SIGUSR1 to rootpid
     t2 = (double) times(&tb2);
-    double time_elapsed = (t2 - t1) / ticspersec;
-    cout << "[INFO] Sorter " << sorterId << " took " << time_elapsed << " to complete." << endl;
+    cpu_time = (double) ((tb2.tms_utime + tb2.tms_stime) - (tb1.tms_utime + tb1.tms_stime));
+    double real_time_sec = (t2 - t1) / ticspersec;
+    double cpu_time_sec = cpu_time / ticspersec;
+
+    //cout << "[INFO] Sorter " << sorterId << " took " << real_time_sec << " to complete." << endl;
 
     string pipename = "tmp/sorter" + to_string(sorterId);
 
@@ -143,16 +146,19 @@ int main(int argc, char *argv[]){
     //const char *numRecordsChar = to_string(num_records).c_str();
     write(fd, &num_records, sizeof(int));
 
-
     for(int i = 0; i < cnt; i++){
         char buf[ROW_LENGTH];
         strcpy(buf, my_record[i]->original_string.c_str());
         write(fd, buf, ROW_LENGTH);
         delete my_record[i];
     }
-    cout << "Closing the pipe " << pipename << endl;
+
+    // Transmitting the time stats to merger
+    write(fd, &real_time_sec, sizeof(double));
+    write(fd, &cpu_time_sec, sizeof(double));
     close(fd);
 
     kill(rootpid, SIGUSR1);
+    cout << "Send SIGUSR1 to " << rootpid << endl;
     return 0; 
 }

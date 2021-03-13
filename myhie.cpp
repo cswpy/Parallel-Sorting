@@ -15,10 +15,15 @@
 using namespace std;
 
 int numSorterSignal = 0;
+int numMergerSignal = 0;
 
 void handleSIGUSR1(int sig){
     signal(SIGUSR1, handleSIGUSR1);
     numSorterSignal++;
+}
+
+void handleSIGUSR2(int sig){
+    numMergerSignal++;
 }
 
 int argumentParser(int argc, char *argv[], int& input_filepath, int& output_filepath, int& num_workers, int& field_num, int& is_ascending, int& is_randomized){
@@ -55,6 +60,7 @@ int main(int argc, char *argv[]){
     int input_filepath, output_filepath;
     int num_workers, field_num, is_ascending, is_randomized = 0;
     signal(SIGUSR1, handleSIGUSR1);
+    signal(SIGUSR2, handleSIGUSR2);
     cout << "[INFO] The root node has pid: " << getpid() << endl;
 
     if(argumentParser(argc, argv, input_filepath, output_filepath, num_workers, field_num, is_ascending, is_randomized) == -1)
@@ -62,11 +68,6 @@ int main(int argc, char *argv[]){
 
     pid_t pid;
     int numOfLines;
-    // char fifo[6] = "pipe1";
-    // if(mkfifo(fifo, 0666) < 0){
-    //     perror("Mkfifo failed.");
-    //     exit(1);
-    // }
 
     fstream finput;
     finput.open(argv[input_filepath], ios::in);
@@ -101,6 +102,7 @@ int main(int argc, char *argv[]){
         
         // Unlink the SIGUSR w/ the signal handling function
         cout << "[INFO] Number of SIGUSR1 arrived at root: " << numSorterSignal << endl;
+        cout << "[INFO] Number of SIGUSR2 arrived at root: " << numMergerSignal << endl;
         return EXIT_SUCCESS;
     }
     //./myhie.o -i Data/1batch-1000.csv -k 10 -r -a 4 -o a -s output.csv
